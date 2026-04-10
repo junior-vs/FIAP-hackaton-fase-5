@@ -13,7 +13,7 @@ from ai_module.core.settings import settings
 
 
 class GeminiAdapter(LLMAdapter):
-    """Gemini implementation of the LLM adapter contract."""
+    """Implementação Gemini do contrato de adaptador LLM."""
 
     def __init__(
         self,
@@ -24,7 +24,7 @@ class GeminiAdapter(LLMAdapter):
         self._model_name = model
 
     async def analyze(self, image_bytes: bytes, prompt: str, system_prompt: str) -> str:
-        """Calls Gemini with the rendered image and prompt text."""
+        """Chama o Gemini com a imagem renderizada e o texto de prompt."""
         try:
             image_part = types.Part.from_bytes(data=image_bytes, mime_type="image/png")
             config = types.GenerateContentConfig(system_instruction=system_prompt)
@@ -39,14 +39,14 @@ class GeminiAdapter(LLMAdapter):
             )
             content = response.text
             if not content:
-                raise LLMCallError("Gemini returned an empty response.")
+                raise LLMCallError("Gemini retornou uma resposta vazia.")
             return content
 
         except asyncio.TimeoutError as e:
             raise LLMTimeoutError(
-                f"Timeout after {settings.LLM_TIMEOUT_SECONDS}s calling Gemini."
+                f"Timeout após {settings.LLM_TIMEOUT_SECONDS}s chamando o Gemini."
             ) from e
         except (LLMTimeoutError, LLMCallError):
             raise
         except Exception as e:
-            raise LLMCallError(f"Error calling Gemini: {e}") from e
+            raise LLMCallError(f"Erro ao chamar o Gemini: {e}") from e

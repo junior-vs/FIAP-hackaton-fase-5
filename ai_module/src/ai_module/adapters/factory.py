@@ -10,11 +10,11 @@ from ai_module.core.settings import settings
 
 def get_llm_adapter() -> LLMAdapter:
     """Returns the adapter based on the configured provider."""
-    provider = settings.LLM_PROVIDER.upper()
+    provider = settings.LLM_PROVIDER
 
-    if provider == "GEMINI":
+    if provider == "gemini":
         return GeminiAdapter(api_key=settings.GEMINI_API_KEY, model=settings.LLM_MODEL)
-    if provider == "OPENAI":
+    if provider == "openai":
         return OpenAIAdapter(api_key=settings.OPENAI_API_KEY, model=settings.LLM_MODEL)
 
     raise ValueError(f"Unsupported LLM provider: {settings.LLM_PROVIDER!r}")

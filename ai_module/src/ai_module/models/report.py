@@ -13,7 +13,7 @@ from pydantic import BaseModel, ConfigDict, Field
 
 
 class ComponentType(str, Enum):
-    """Supported architecture component categories."""
+    """Categorias de componentes de arquitetura suportados."""
 
     SERVICE = "service"
     DATABASE = "database"
@@ -25,7 +25,7 @@ class ComponentType(str, Enum):
 
 
 class Severity(str, Enum):
-    """Risk severity levels."""
+    """Níveis de severidade de risco."""
 
     HIGH = "high"
     MEDIUM = "medium"
@@ -33,7 +33,7 @@ class Severity(str, Enum):
 
 
 class Priority(str, Enum):
-    """Recommendation priority levels."""
+    """Níveis de prioridade de recomendação."""
 
     HIGH = "high"
     MEDIUM = "medium"
@@ -41,7 +41,7 @@ class Priority(str, Enum):
 
 
 class Component(BaseModel):
-    """A component identified in the architecture diagram."""
+    """Componente identificado no diagrama de arquitetura."""
 
     model_config = ConfigDict(extra="forbid")
 
@@ -51,7 +51,7 @@ class Component(BaseModel):
 
 
 class Risk(BaseModel):
-    """A risk identified during architecture analysis."""
+    """Risco identificado durante a análise de arquitetura."""
 
     model_config = ConfigDict(extra="forbid")
 
@@ -62,7 +62,7 @@ class Risk(BaseModel):
 
 
 class Recommendation(BaseModel):
-    """An action recommended to improve the architecture."""
+    """Ação recomendada para melhorar a arquitetura."""
 
     model_config = ConfigDict(extra="forbid")
 
@@ -72,7 +72,7 @@ class Recommendation(BaseModel):
 
 
 class Report(BaseModel):
-    """Top-level report payload returned by the AI pipeline."""
+    """Payload principal do relatório retornado pelo pipeline de IA."""
 
     model_config = ConfigDict(extra="forbid")
 
@@ -83,7 +83,7 @@ class Report(BaseModel):
 
 
 class ReportMetadata(BaseModel):
-    """Metadata describing how the report was generated."""
+    """Metadados descrevendo como o relatório foi gerado."""
 
     model_config = ConfigDict(extra="forbid")
 
@@ -93,7 +93,7 @@ class ReportMetadata(BaseModel):
 
 
 class AnalyzeResponse(BaseModel):
-    """Successful response contract for POST /analyze."""
+    """Contrato de resposta de sucesso para POST /analyze."""
 
     model_config = ConfigDict(extra="forbid")
 
@@ -104,7 +104,7 @@ class AnalyzeResponse(BaseModel):
 
 
 class ErrorResponse(BaseModel):
-    """Error response contract for POST /analyze."""
+    """Contrato de resposta de erro para POST /analyze."""
 
     model_config = ConfigDict(extra="forbid")
 

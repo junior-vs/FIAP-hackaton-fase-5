@@ -154,6 +154,11 @@ Codigos de erro principais:
 - `200`: servico saudavel
 - `503`: modo degradado (exemplo: API key ausente)
 
+> [!IMPORTANT]
+> Limitacao conhecida (MVP): o estado de saude eh mantido em memoria no processo (`_service_healthy`).
+> Em execucao com multiplos workers (ex.: Gunicorn/Uvicorn workers), cada worker possui seu proprio estado.
+> Isso pode gerar respostas divergentes entre workers para `/health`.
+
 ### GET /metrics
 
 Retorna contadores em formato Prometheus.

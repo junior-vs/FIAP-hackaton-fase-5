@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, Form, Request, UploadFile
+from fastapi import APIRouter, Depends, Form, HTTPException, Request, UploadFile
 from fastapi.responses import PlainTextResponse
 
 from ai_module.adapters.base import LLMAdapter
@@ -16,22 +16,24 @@ from ai_module.core.settings import settings
 from ai_module.models.report import AnalyzeResponse
 
 router = APIRouter()
- 
+
+# MVP note: this in-memory flag is process-local. In multi-worker deployments
+# each worker keeps an independent value.
 _service_healthy: bool = True
- 
- 
+
+
 def set_service_health(healthy: bool) -> None:
     global _service_healthy
     _service_healthy = healthy
- 
+
 logger = get_logger(__name__, level=settings.LOG_LEVEL)
- 
+
 
 @router.get("/health")
 async def health_check() -> dict:
 
     if not _service_healthy:
-        from fastapi import HTTPException
+       
  
         raise HTTPException(
             status_code=503,

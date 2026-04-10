@@ -10,13 +10,13 @@ from pydantic import UUID4, BaseModel, ConfigDict, Field
 
 
 class AnalyzeRequest(BaseModel):
-    """Request schema for POST /analyze endpoint.
+    """Esquema de requisição para o endpoint POST /analyze.
 
     Parameters
     ----------
-    analysis_id : UUID4 
-        Unique identifier for this analysis request.
-        Must be a valid UUID v4 format.
+    analysis_id : UUID4
+        Identificador único desta requisição de análise.
+        Deve estar no formato UUID v4 válido.
     """
 
     model_config = ConfigDict(extra="forbid")

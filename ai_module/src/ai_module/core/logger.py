@@ -10,15 +10,15 @@ from pythonjsonlogger.json import JsonFormatter as BaseJsonFormatter
 
 
 class JsonFormatter(BaseJsonFormatter):
-    """Custom JSON formatter ensuring mandatory fields.
+    """Formatador JSON personalizado que garante campos obrigatórios.
 
-    Extends the base JsonFormatter to guarantee the presence of
-    'event' and 'details' fields in every log record.
+    Estende o JsonFormatter base para garantir a presença dos campos
+    'event' e 'details' em cada registro de log.
     """
 
     def add_fields(
         self,
-        log_record: dict[str, Any],
+        log_data: dict[str, Any],
         record: logging.LogRecord,
         message_dict: dict[str, Any],
     ) -> None:
@@ -26,36 +26,36 @@ class JsonFormatter(BaseJsonFormatter):
 
         Parameters
         ----------
-        log_record : dict[str, Any]
+        log_data : dict[str, Any]
             The log record dict to be serialized.
         record : logging.LogRecord
             The original logging.LogRecord.
         message_dict : dict[str, Any]
             Extra fields from the log call.
         """
-        super().add_fields(log_record, record, message_dict)
+        super().add_fields(log_data, record, message_dict)
 
         # Guarantee mandatory top-level fields even if formatter input changes.
-        if "event" not in log_record:
-            log_record["event"] = record.getMessage()
-        if "level" not in log_record:
-            log_record["level"] = record.levelname
-        if "timestamp" not in log_record:
-            log_record["timestamp"] = self.formatTime(record, self.datefmt)
-        if "analysis_id" not in log_record:
-            log_record["analysis_id"] = None
+        if "event" not in log_data:
+            log_data["event"] = record.getMessage()
+        if "level" not in log_data:
+            log_data["level"] = record.levelname
+        if "timestamp" not in log_data:
+            log_data["timestamp"] = self.formatTime(record, self.datefmt)
+        if "analysis_id" not in log_data:
+            log_data["analysis_id"] = None
 
         # Move all extra fields into 'details' if not already present
-        if "details" not in log_record:
+        if "details" not in log_data:
             details = {}
             reserved = {"timestamp", "level", "event", "name"}
-            for key in list(log_record.keys()):
+            for key in list(log_data.keys()):
                 if key not in reserved:
-                    details[key] = log_record.pop(key)
-            log_record["details"] = details
+                    details[key] = log_data.pop(key)
+            log_data["details"] = details
 
-        log_record.pop("message", None)
-        log_record.pop("msg", None)
+        log_data.pop("message", None)
+        log_data.pop("msg", None)
 
 
 def get_logger(name: str, level: str = "INFO") -> logging.Logger:
@@ -79,12 +79,16 @@ def get_logger(name: str, level: str = "INFO") -> logging.Logger:
     #          "details": {"user_id": 123}}
     """
     logger = logging.getLogger(name)
+    log_level = getattr(logging, level.upper(), logging.INFO)
 
-    # Avoid duplicate handlers if called multiple times
+    # Keep idempotence (no duplicate handlers) while allowing level updates
+    # in repeated calls (useful for tests and runtime reconfiguration).
     if logger.handlers:
+        logger.setLevel(log_level)
+        for handler in logger.handlers:
+            handler.setLevel(log_level)
         return logger
 
-    log_level = getattr(logging, level.upper(), logging.INFO)
     logger.setLevel(log_level)
 
     console_handler = logging.StreamHandler(stream=sys.stdout)

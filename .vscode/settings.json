@@ -1,0 +1,7 @@
+{
+    "python.testing.pytestArgs": [
+        "ai_module"
+    ],
+    "python.testing.unittestEnabled": false,
+    "python.testing.pytestEnabled": true
+}

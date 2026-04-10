@@ -9,7 +9,7 @@ from __future__ import annotations
 
 
 class UnsupportedFormatError(Exception):
-    """Raised when the uploaded file type is not supported. → HTTP 422"""
+    """Lançada quando o tipo de arquivo enviado não é suportado. → HTTP 422"""
 
     def __init__(self, message: str = "File format not supported") -> None:
         self.message = message
@@ -17,7 +17,7 @@ class UnsupportedFormatError(Exception):
 
 
 class InvalidInputError(Exception):
-    """Raised when the file is invalid (too large, corrupted, etc.). → HTTP 422"""
+    """Lançada quando o arquivo é inválido (muito grande, corrompido, etc.). → HTTP 422"""
 
     def __init__(self, message: str = "Invalid input file") -> None:
         self.message = message
@@ -25,7 +25,7 @@ class InvalidInputError(Exception):
 
 
 class AIFailureError(Exception):
-    """Raised when the AI pipeline fails after all retries. → HTTP 500"""
+    """Lançada quando o pipeline de IA falha após todas as tentativas. → HTTP 500"""
 
     def __init__(self, message: str = "AI analysis failed") -> None:
         self.message = message
@@ -33,7 +33,7 @@ class AIFailureError(Exception):
 
 
 class LLMTimeoutError(Exception):
-    """Raised by adapters when the LLM call exceeds the configured timeout."""
+    """Lançada pelos adaptadores quando a chamada ao LLM excede o timeout configurado."""
 
     def __init__(self, message: str = "LLM call timed out") -> None:
         self.message = message
@@ -41,7 +41,7 @@ class LLMTimeoutError(Exception):
 
 
 class LLMCallError(Exception):
-    """Raised by adapters when the LLM SDK returns an error."""
+    """Lançada pelos adaptadores quando o SDK do LLM retorna um erro."""
 
     def __init__(self, message: str = "LLM call failed") -> None:
         self.message = message

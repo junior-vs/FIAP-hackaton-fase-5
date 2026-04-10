@@ -7,7 +7,7 @@ from dataclasses import dataclass
 
 @dataclass
 class Metrics:
-    """Request counters and aggregate timing for Prometheus export."""
+    """Contadores de requisições e tempos agregados para exportação Prometheus."""
 
     requests_success: int = 0
     requests_error: int = 0
