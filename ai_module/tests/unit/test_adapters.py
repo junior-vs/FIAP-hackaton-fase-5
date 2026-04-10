@@ -5,7 +5,7 @@ from __future__ import annotations
 import asyncio
 from unittest.mock import AsyncMock, MagicMock, patch
 
-import pytest
+import pytest  # type: ignore
 
 from ai_module.adapters.base import LLMAdapter
 from ai_module.adapters.factory import get_llm_adapter
@@ -53,10 +53,10 @@ async def test_gemini_adapter_returns_response_text(png_bytes: bytes) -> None:
     mock_response = MagicMock()
     mock_response.text = _RESPONSE_TEXT
 
-    with patch("ai_module.adapters.gemini_adapter.genai") as mock_genai:
-        mock_model = MagicMock()
-        mock_model.generate_content_async = AsyncMock(return_value=mock_response)
-        mock_genai.GenerativeModel.return_value = mock_model
+    with patch("ai_module.adapters.gemini_adapter.genai.Client") as mock_client_cls:
+        mock_client = MagicMock()
+        mock_client.aio.models.generate_content = AsyncMock(return_value=mock_response)
+        mock_client_cls.return_value = mock_client
 
         adapter = GeminiAdapter(api_key="fake-key", model="gemini-pro-vision")
         result = await adapter.analyze(png_bytes, _PROMPT, _SYSTEM)
@@ -66,10 +66,10 @@ async def test_gemini_adapter_returns_response_text(png_bytes: bytes) -> None:
 
 @pytest.mark.asyncio
 async def test_gemini_adapter_timeout_raises_llm_timeout_error(png_bytes: bytes) -> None:
-    with patch("ai_module.adapters.gemini_adapter.genai") as mock_genai:
-        mock_model = MagicMock()
-        mock_model.generate_content_async = AsyncMock(side_effect=asyncio.TimeoutError)
-        mock_genai.GenerativeModel.return_value = mock_model
+    with patch("ai_module.adapters.gemini_adapter.genai.Client") as mock_client_cls:
+        mock_client = MagicMock()
+        mock_client.aio.models.generate_content = AsyncMock(side_effect=asyncio.TimeoutError)
+        mock_client_cls.return_value = mock_client
 
         adapter = GeminiAdapter(api_key="fake-key", model="gemini-pro-vision")
         with pytest.raises(LLMTimeoutError):
@@ -78,10 +78,10 @@ async def test_gemini_adapter_timeout_raises_llm_timeout_error(png_bytes: bytes)
 
 @pytest.mark.asyncio
 async def test_gemini_adapter_sdk_error_raises_llm_call_error(png_bytes: bytes) -> None:
-    with patch("ai_module.adapters.gemini_adapter.genai") as mock_genai:
-        mock_model = MagicMock()
-        mock_model.generate_content_async = AsyncMock(side_effect=Exception("sdk error"))
-        mock_genai.GenerativeModel.return_value = mock_model
+    with patch("ai_module.adapters.gemini_adapter.genai.Client") as mock_client_cls:
+        mock_client = MagicMock()
+        mock_client.aio.models.generate_content = AsyncMock(side_effect=Exception("sdk error"))
+        mock_client_cls.return_value = mock_client
 
         adapter = GeminiAdapter(api_key="fake-key", model="gemini-pro-vision")
         with pytest.raises(LLMCallError, match="sdk error"):

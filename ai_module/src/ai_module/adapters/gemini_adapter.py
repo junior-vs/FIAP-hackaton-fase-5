@@ -4,8 +4,8 @@ from __future__ import annotations
 
 import asyncio
 
-import google.generativeai as genai
-from google.generativeai.types import GenerateContentResponse
+from google import genai
+from google.genai import types
 
 from ai_module.adapters.base import LLMAdapter
 from ai_module.core.exceptions import LLMCallError, LLMTimeoutError
@@ -20,20 +20,21 @@ class GeminiAdapter(LLMAdapter):
         api_key: str = settings.GEMINI_API_KEY,
         model: str = settings.LLM_MODEL,
     ) -> None:
-        genai.configure(api_key=api_key)
+        self._client = genai.Client(api_key=api_key)
         self._model_name = model
 
     async def analyze(self, image_bytes: bytes, prompt: str, system_prompt: str) -> str:
         """Calls Gemini with the rendered image and prompt text."""
         try:
-            llm = genai.GenerativeModel(
-                model_name=self._model_name,
-                system_instruction=system_prompt,
-            )
-            image_part = {"mime_type": "image/png", "data": image_bytes}
+            image_part = types.Part.from_bytes(data=image_bytes, mime_type="image/png")
+            config = types.GenerateContentConfig(system_instruction=system_prompt)
 
-            response: GenerateContentResponse = await asyncio.wait_for(
-                llm.generate_content_async([image_part, prompt]),
+            response = await asyncio.wait_for(
+                self._client.aio.models.generate_content(
+                    model=self._model_name,
+                    contents=[prompt, image_part],
+                    config=config,
+                ),
                 timeout=settings.LLM_TIMEOUT_SECONDS,
             )
             content = response.text

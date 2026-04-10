@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import json
 
-import pytest
+import pytest  # type: ignore
 
 from ai_module.core.report_validator import validate_and_normalize
 

@@ -96,6 +96,14 @@ async def security_headers(request: Request, call_next):
 
 @app.exception_handler(UnsupportedFormatError)
 async def unsupported_format_handler(request: Request, exc: UnsupportedFormatError) -> JSONResponse:
+    logger.warning(
+        "Returning unsupported format error",
+        extra={
+            "event": "unsupported_format_response",
+            "analysis_id": _get_analysis_id(request),
+            "details": {"message": exc.message},
+        },
+    )
     return JSONResponse(
         status_code=422,
         content=ErrorResponse(
@@ -109,6 +117,14 @@ async def unsupported_format_handler(request: Request, exc: UnsupportedFormatErr
 
 @app.exception_handler(InvalidInputError)
 async def invalid_input_handler(request: Request, exc: InvalidInputError) -> JSONResponse:
+    logger.warning(
+        "Returning invalid input error",
+        extra={
+            "event": "invalid_input_response",
+            "analysis_id": _get_analysis_id(request),
+            "details": {"message": exc.message},
+        },
+    )
     return JSONResponse(
         status_code=422,
         content=ErrorResponse(
@@ -122,6 +138,14 @@ async def invalid_input_handler(request: Request, exc: InvalidInputError) -> JSO
 
 @app.exception_handler(AIFailureError)
 async def ai_failure_handler(request: Request, exc: AIFailureError) -> JSONResponse:
+    logger.error(
+        "Returning AI failure error",
+        extra={
+            "event": "ai_failure_response",
+            "analysis_id": _get_analysis_id(request),
+            "details": {"message": exc.message},
+        },
+    )
     return JSONResponse(
         status_code=500,
         content=ErrorResponse(

@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 from io import BytesIO
+from pathlib import Path
 from types import SimpleNamespace
 from unittest.mock import AsyncMock
 
@@ -25,6 +26,12 @@ def png_bytes() -> bytes:
     buffer = BytesIO()
     Image.new("RGB", (10, 10), color=(255, 0, 0)).save(buffer, format="PNG")
     return buffer.getvalue()
+
+
+@pytest.fixture
+def real_diagram_png_bytes() -> bytes:
+    image_path = Path(__file__).resolve().parents[2] / "docs" / "tests" / "diagrama_caso_usuario.png"
+    return image_path.read_bytes()
 
 
 @pytest.fixture

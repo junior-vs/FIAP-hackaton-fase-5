@@ -5,7 +5,7 @@ from __future__ import annotations
 from types import SimpleNamespace
 from unittest.mock import AsyncMock
 
-import pytest
+import pytest  # type: ignore
 
 from ai_module.core.exceptions import AIFailureError, LLMTimeoutError
 from ai_module.core.pipeline import run_pipeline

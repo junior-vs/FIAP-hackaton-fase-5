@@ -85,14 +85,24 @@ async def analyze(
 ) -> AnalyzeResponse:
     """Run the complete AI analysis pipeline for an uploaded file."""
     request.state.analysis_id = analysis_id
-    logger.debug("Received analyze request (stub)",
-                 extra={"details": {"app_version": settings.APP_VERSION, 
-                                    "llm_provider": settings.LLM_PROVIDER}})
-
     file_bytes = await file.read()
+    logger.info(
+        "Received analyze request",
+        extra={
+            "event": "analyze_request_received",
+            "analysis_id": analysis_id,
+            "details": {
+                "filename": file.filename,
+                "content_type": file.content_type,
+                "file_size_bytes": len(file_bytes),
+                "app_version": settings.APP_VERSION,
+                "llm_provider": settings.LLM_PROVIDER,
+            },
+        },
+    )
     return await run_pipeline(
         file_bytes=file_bytes,
-        filename=file.filename,
+        filename=file.filename, # type: ignore
         analysis_id=analysis_id,
         adapter=adapter,
     )

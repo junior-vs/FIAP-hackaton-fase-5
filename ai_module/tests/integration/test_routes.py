@@ -77,6 +77,28 @@ def test_analyze_png_returns_success_response(
     assert body["metadata"]["input_type"] == "image"
 
 
+def test_analyze_real_diagram_png_returns_unsupported_format_error(
+    client: TestClient,
+    real_diagram_png_bytes: bytes,
+    mock_adapter: SimpleNamespace,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setitem(app.dependency_overrides, get_llm_adapter, lambda: mock_adapter)
+
+    response = client.post(
+        "/analyze",
+        data={"analysis_id": "analysis-real-diagram"},
+        files={"file": ("diagrama_caso_usuario.png", real_diagram_png_bytes, "image/png")},
+    )
+
+    assert response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
+    body = response.json()
+    assert body["analysis_id"] == "analysis-real-diagram"
+    assert body["status"] == "error"
+    assert body["error_code"] == "UNSUPPORTED_FORMAT"
+    assert mock_adapter.analyze.await_count == 0
+
+
 def test_analyze_pdf_returns_success_response(
     client: TestClient,
     pdf_bytes: bytes,

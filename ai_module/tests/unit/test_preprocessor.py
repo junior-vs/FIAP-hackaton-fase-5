@@ -1,7 +1,7 @@
 """Unit tests for preprocessor module — Phase 3, tasks 3.3.6–3.3.11."""
 from __future__ import annotations
 
-import pytest
+import pytest  # type: ignore
 
 from ai_module.core.exceptions import InvalidInputError, UnsupportedFormatError
 from ai_module.core.preprocessor import preprocess
