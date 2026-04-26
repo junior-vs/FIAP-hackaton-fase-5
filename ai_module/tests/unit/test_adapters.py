@@ -7,7 +7,6 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest  # type: ignore
 
-from ai_module.adapters.base import LLMAdapter
 from ai_module.adapters.factory import get_llm_adapter
 from ai_module.adapters.gemini_adapter import GeminiAdapter
 from ai_module.adapters.openai_adapter import OpenAIAdapter

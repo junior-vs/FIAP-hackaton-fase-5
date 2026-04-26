@@ -44,19 +44,19 @@ pip install uv
 
 Crie um arquivo `.env` dentro da pasta `ai_module/`.
 
-| Variavel | Default | Descricao |
-|---|---|---|
-| `LLM_PROVIDER` | `gemini` | Provedor (`gemini` ou `openai`) |
-| `LLM_MODEL` | `gemini-1.5-pro` | Modelo utilizado no provedor |
-| `GEMINI_API_KEY` | vazio | Obrigatoria quando `LLM_PROVIDER=gemini` |
-| `OPENAI_API_KEY` | vazio | Obrigatoria quando `LLM_PROVIDER=openai` |
-| `MAX_FILE_SIZE_MB` | `10` | Tamanho maximo do arquivo de entrada |
-| `LLM_TIMEOUT_SECONDS` | `60` | Timeout da chamada ao LLM |
-| `LLM_MAX_RETRIES` | `2` | Numero maximo de tentativas |
-| `LOG_LEVEL` | `INFO` | Nivel de log |
-| `APP_HOST` | `0.0.0.0` | Host de bind da aplicacao |
-| `APP_PORT` | `8000` | Porta HTTP |
-| `APP_ENV` | `dev` | Ambiente de execucao |
+| Variavel              | Default          | Descricao                                |
+|-----------------------|------------------|------------------------------------------|
+| `LLM_PROVIDER`        | `gemini`         | Provedor (`gemini` ou `openai`)          |
+| `LLM_MODEL`           | `gemini-1.5-pro` | Modelo utilizado no provedor             |
+| `GEMINI_API_KEY`      | vazio            | Obrigatoria quando `LLM_PROVIDER=gemini` |
+| `OPENAI_API_KEY`      | vazio            | Obrigatoria quando `LLM_PROVIDER=openai` |
+| `MAX_FILE_SIZE_MB`    | `10`             | Tamanho maximo do arquivo de entrada     |
+| `LLM_TIMEOUT_SECONDS` | `60`             | Timeout da chamada ao LLM                |
+| `LLM_MAX_RETRIES`     | `2`              | Numero maximo de tentativas              |
+| `LOG_LEVEL`           | `INFO`           | Nivel de log                             |
+| `APP_HOST`            | `0.0.0.0`        | Host de bind da aplicacao                |
+| `APP_PORT`            | `8000`           | Porta HTTP                               |
+| `APP_ENV`             | `dev`            | Ambiente de execucao                     |
 
 Exemplo de `.env`:
 
@@ -79,25 +79,25 @@ APP_PORT=8000
 cd ai_module
 ```
 
-2. Instale dependencias:
+1. Instale dependencias:
 
 ```bash
 uv sync
 ```
 
-3. Confirme seu `.env` (principalmente `LLM_PROVIDER` e API key).
+1. Confirme seu `.env` (principalmente `LLM_PROVIDER` e API key).
 
-4. Rode em modo desenvolvimento com hot reload:
+2. Rode em modo desenvolvimento com hot reload:
 
 ```bash
 uv run uvicorn ai_module.main:app --host 0.0.0.0 --port 8000 --reload
 ```
 
-5. Acesse:
+1. Acesse:
 
-- API docs: http://localhost:8000/docs
-- Health: http://localhost:8000/health
-- Metrics: http://localhost:8000/metrics
+- API docs: <http://localhost:8000/docs>
+- Health: <http://localhost:8000/health>
+- Metrics: <http://localhost:8000/metrics>
 
 ## Tutorial - rodando com docker
 
@@ -111,11 +111,11 @@ Execute os comandos a partir da raiz do repositorio.
 docker compose -f infra/compose.yaml up --build
 ```
 
-3. Acesse:
+1. Acesse:
 
-- API docs: http://localhost:8000/docs
-- Health: http://localhost:8000/health
-- Metrics: http://localhost:8000/metrics
+- API docs: <http://localhost:8000/docs>
+- Health: <http://localhost:8000/health>
+- Metrics: <http://localhost:8000/metrics>
 
 Opcional: build e execucao manuais sem compose.
 
@@ -132,22 +132,41 @@ Request: `multipart/form-data`
 
 - `file`: arquivo `.png`, `.jpg`, `.jpeg` ou `.pdf`
 - `analysis_id`: UUID de correlacao
+- `context_text` (opcional): texto auxiliar com limite de 1000 caracteres
+
+Regra de validacao:
+
+- Se `context_text` exceder 1000 caracteres, a API retorna `422 Unprocessable Entity` automaticamente.
 
 Exemplo com `curl`:
 
 ```bash
 curl -X POST "http://localhost:8000/analyze" \
   -F "analysis_id=550e8400-e29b-41d4-a716-446655440000" \
+  -F "context_text=Fluxo principal passando por API e fila" \
   -F "file=@./sample-architecture.png"
 ```
 
+Metadados da resposta:
+
+- `metadata.context_text_provided`: indica se `context_text` foi enviado
+- `metadata.context_text_length`: tamanho do texto enviado
+- `metadata.conflict_detected`: indica conflito entre contexto textual e evidencia visual
+- `metadata.conflict_decision`: decisao aplicada (`NO_CONFLICT` ou `DIAGRAM_FIRST`)
+- `metadata.conflict_policy`: politica ativa (`DIAGRAM_FIRST`)
+
+Importante:
+
+- O contexto textual e tratado apenas como dado auxiliar no prompt.
+- Em caso de conflito entre `context_text` e diagrama, prevalece o diagrama (`DIAGRAM_FIRST`).
+
 Codigos de erro principais:
 
-| Codigo | HTTP | Causa |
-|---|---|---|
-| `INVALID_INPUT` | 422 | Arquivo vazio, corrompido ou acima do limite |
-| `UNSUPPORTED_FORMAT` | 422 | Formato diferente de PNG/JPEG/PDF |
-| `AI_FAILURE` | 500 | Falha no pipeline de IA apos retries |
+| Codigo               | HTTP | Causa                                        |
+|----------------------|------|----------------------------------------------|
+| `INVALID_INPUT`      | 422  | Arquivo vazio, corrompido ou acima do limite |
+| `UNSUPPORTED_FORMAT` | 422  | Formato diferente de PNG/JPEG/PDF            |
+| `AI_FAILURE`         | 500  | Falha no pipeline de IA apos retries         |
 
 ### GET /health
 
@@ -205,3 +224,17 @@ Formatacao:
 ```bash
 uv run ruff format .
 ```
+
+## Limitações Conhecidas
+
+| Limitação                                                    | Impacto                                        | Mitigação                                                                          |
+|--------------------------------------------------------------|------------------------------------------------|------------------------------------------------------------------------------------|
+| LLMs podem alucinar componentes não visíveis                 | Relatório impreciso                            | Guardrail de saída + instrução explícita no prompt                                 |
+| `context_text` pode conflitar com o diagrama                 | Ambiguidade de interpretação                   | Guardrail de conflito + política `DIAGRAM_FIRST` com decisão explícita no metadata |
+| Diagramas com baixa resolução reduzem precisão               | Componentes não identificados                  | Documentado no `metadata` da resposta                                              |
+| PDFs com múltiplas páginas: apenas primeira página analisada | Análise incompleta                             | Documentado no README como limitação do MVP                                        |
+| Respostas do LLM não são determinísticas                     | Variação entre execuções                       | Documentado como comportamento esperado                                            |
+| Custo por chamada ao LLM                                     | Custo operacional em escala                    | Monitorar via métricas; fora do escopo do MVP                                      |
+| Sem autenticação própria                                     | Acesso irrestrito ao endpoint                  | Autenticação delegada ao API Gateway (SOAT); serviço restrito à rede interna       |
+| Dependência de provedor externo                              | Indisponibilidade do Gemini/OpenAI causa falha | Timeout configurável + `AI_FAILURE` claro; troca de provider via env var           |
+| Imagens enviadas ao LLM externo                              | Dados do diagrama saem do ambiente local       | Deve ser informado ao usuário final pelo sistema                                   |

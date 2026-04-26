@@ -32,7 +32,7 @@ class GeminiAdapter(LLMAdapter):
             response = await asyncio.wait_for(
                 self._client.aio.models.generate_content(
                     model=self._model_name,
-                    contents=[prompt, image_part],
+                    contents=[prompt, image_part],  # type: ignore[arg-type]
                     config=config,
                 ),
                 timeout=settings.LLM_TIMEOUT_SECONDS,
@@ -42,7 +42,7 @@ class GeminiAdapter(LLMAdapter):
                 raise LLMCallError("Gemini retornou uma resposta vazia.")
             return content
 
-        except asyncio.TimeoutError as e:
+        except TimeoutError as e:
             raise LLMTimeoutError(
                 f"Timeout após {settings.LLM_TIMEOUT_SECONDS}s chamando o Gemini."
             ) from e

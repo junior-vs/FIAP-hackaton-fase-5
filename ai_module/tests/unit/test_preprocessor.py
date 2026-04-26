@@ -1,4 +1,5 @@
 """Unit tests for preprocessor module — Phase 3, tasks 3.3.6–3.3.11."""
+
 from __future__ import annotations
 
 import pytest  # type: ignore
@@ -11,21 +12,21 @@ _PNG_MAGIC = b"\x89PNG\r\n\x1a\n"
 
 
 def test_preprocess_png_returns_image_type(png_bytes: bytes) -> None:
-    result_bytes, input_type = preprocess(png_bytes, "img.png")
+    result_bytes, input_type = preprocess(png_bytes)
 
     assert input_type == "image"
     assert result_bytes[:8] == _PNG_MAGIC
 
 
 def test_preprocess_jpeg_returns_image_type(jpeg_bytes: bytes) -> None:
-    result_bytes, input_type = preprocess(jpeg_bytes, "img.jpg")
+    result_bytes, input_type = preprocess(jpeg_bytes)
 
     assert input_type == "image"
     assert len(result_bytes) > 0
 
 
 def test_preprocess_pdf_returns_pdf_type_and_png_bytes(pdf_bytes: bytes) -> None:
-    result_bytes, input_type = preprocess(pdf_bytes, "doc.pdf")
+    result_bytes, input_type = preprocess(pdf_bytes)
 
     assert input_type == "pdf"
     assert result_bytes[:8] == _PNG_MAGIC
@@ -33,7 +34,7 @@ def test_preprocess_pdf_returns_pdf_type_and_png_bytes(pdf_bytes: bytes) -> None
 
 def test_preprocess_unsupported_format_raises_error() -> None:
     with pytest.raises(UnsupportedFormatError):
-        preprocess(b"texto qualquer invalido", "arquivo.txt")
+        preprocess(b"texto qualquer invalido")
 
 
 def test_preprocess_oversized_file_raises_error() -> None:
@@ -41,9 +42,9 @@ def test_preprocess_oversized_file_raises_error() -> None:
     oversized = b"x" * (limit + 1)
 
     with pytest.raises(InvalidInputError):
-        preprocess(oversized, "big.bin")
+        preprocess(oversized)
 
 
 def test_preprocess_corrupted_file_raises_error(corrupted_bytes: bytes) -> None:
     with pytest.raises(InvalidInputError):
-        preprocess(corrupted_bytes, "img.png")
+        preprocess(corrupted_bytes)

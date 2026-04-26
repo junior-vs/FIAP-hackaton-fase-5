@@ -46,3 +46,55 @@ class LLMCallError(Exception):
     def __init__(self, message: str = "LLM call failed") -> None:
         self.message = message
         super().__init__(self.message)
+
+
+class AITimeoutError(Exception):
+    """Raised when LLM times out after all retries. → HTTP 504"""
+
+    def __init__(self, message: str = "LLM timeout") -> None:
+        self.message = message
+        super().__init__(self.message)
+
+
+def classify_validation_error(error: str) -> str:
+    """Mapeia uma mensagem de erro de validação para uma instrução de correção direcionada.
+
+    Converte mensagens de erro técnicas de validação em instruções legíveis e
+    acionáveis que o LLM pode usar para se auto-corrigir na próxima tentativa.
+
+    Parameters
+    ----------
+    error : str
+        String de erro de validação retornada por ``validate_and_normalize``.
+
+    Returns
+    -------
+    str
+        Instrução de correção legível para incorporar no próximo prompt do LLM,
+        permitindo que o modelo corrija o problema específico.
+    """
+    if "JSON_PARSE_ERROR" in error:
+        return (
+            "Your response was not valid JSON. "
+            "Return ONLY the raw JSON object, no markdown, no extra text."
+        )
+    if "components" in error:
+        return (
+            "The 'components' field is missing or empty. "
+            "You MUST identify at least one component visible in the diagram."
+        )
+    if "summary" in error:
+        return (
+            "The 'summary' field is missing or exceeds 500 characters. "
+            "Provide a concise summary of at most 500 characters."
+        )
+    if "severity" in error:
+        return "Use only 'high', 'medium', or 'low' for risk severity."
+    if "priority" in error:
+        return "Use only 'high', 'medium', or 'low' for recommendation priority."
+    if "SCHEMA_ERROR" in error:
+        return (
+            f"Schema validation failed: {error}. "
+            "Fix only the invalid fields and return the complete JSON."
+        )
+    return f"Fix the invalid response. Error: {error}"

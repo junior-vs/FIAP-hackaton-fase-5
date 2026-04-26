@@ -6,7 +6,7 @@ import json
 
 import pytest  # type: ignore
 
-from ai_module.core.report_validator import validate_and_normalize
+from ai_module.core.report_validator import detect_conflict, validate_and_normalize
 
 
 def test_validate_and_normalize_accepts_valid_json(valid_report_json: str) -> None:
@@ -57,3 +57,31 @@ def test_validate_and_normalize_raises_schema_error_when_components_missing(
 def test_validate_and_normalize_raises_json_parse_error() -> None:
     with pytest.raises(ValueError, match="JSON_PARSE_ERROR"):
         validate_and_normalize("não é json")
+
+
+def test_detect_conflict_returns_no_conflict_when_context_matches_component(
+    valid_report_json: str,
+) -> None:
+    report, _ = validate_and_normalize(valid_report_json)
+
+    conflict_detected, conflict_decision = detect_conflict(
+        "api-service recebe trafego e processa requisicoes",
+        report,
+    )
+
+    assert conflict_detected is False
+    assert conflict_decision == "NO_CONFLICT"
+
+
+def test_detect_conflict_returns_diagram_first_for_conflicting_context(
+    valid_report_json: str,
+) -> None:
+    report, _ = validate_and_normalize(valid_report_json)
+
+    conflict_detected, conflict_decision = detect_conflict(
+        "mainframe legado processo batch noturno fila cassandra externo",
+        report,
+    )
+
+    assert conflict_detected is True
+    assert conflict_decision == "DIAGRAM_FIRST"

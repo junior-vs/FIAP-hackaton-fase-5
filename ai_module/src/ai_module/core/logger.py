@@ -58,6 +58,49 @@ class JsonFormatter(BaseJsonFormatter):
         log_data.pop("msg", None)
 
 
+def truncate_for_log(value: str, limit: int = 500) -> str:
+    """Compacta e trunca uma string para inclusão segura em entradas de log estruturado.
+
+    Substitui quebras de linha por sequências de escape literais e corta em ``limit``
+    caracteres, adicionando reticências quando o valor é maior.
+
+    Parameters
+    ----------
+    value : str
+        String bruta a compactar.
+    limit : int
+        Tamanho máximo em caracteres antes do truncamento (padrão 500).
+
+    Returns
+    -------
+    str
+        String de uma linha com no máximo ``limit + 3`` caracteres.
+    """
+    compact = value.replace("\n", "\\n").replace("\r", "\\r")
+    return compact[:limit] + "..." if len(compact) > limit else compact
+
+
+def file_signature_hex(file_bytes: bytes, limit: int = 16) -> str:
+    """Return the first ``limit`` bytes of a file as a hex string.
+
+    Useful for diagnostic logging — allows identification of file
+    type by magic bytes without exposing the full content.
+
+    Parameters
+    ----------
+    file_bytes : bytes
+        Raw file content.
+    limit : int
+        Number of leading bytes to include (default 16).
+
+    Returns
+    -------
+    str
+        Hex-encoded prefix (e.g. ``"89504e47..."``)
+    """
+    return file_bytes[:limit].hex()
+
+
 def get_logger(name: str, level: str = "INFO") -> logging.Logger:
     """Create and configure a structured JSON logger.
 

@@ -3,8 +3,9 @@
 from __future__ import annotations
 
 from io import BytesIO
+from typing import cast
 
-import fitz  # PyMuPDF
+import fitz   # PyMuPDF
 from PIL import Image
 
 from ai_module.core.exceptions import InvalidInputError, UnsupportedFormatError
@@ -19,34 +20,31 @@ _MAGIC_BYTES = {
     "png": b"\x89PNG\r\n\x1a\n",
 }
 
+
 def _detect_file_type(file_bytes: bytes) -> str:
     """
-    Detects the real file type by inspecting magic bytes.
-    Returns 'png', 'jpeg', or 'pdf'.
-    Raises UnsupportedFormatError for any other content.
+    Detecta o tipo real do arquivo analisando os bytes mágicos.
+    Retorna 'png', 'jpeg' ou 'pdf'.
+    Gera uma exceção UnsupportedFormatError para qualquer outro tipo de conteúdo.
     """
     for file_type, magic in _MAGIC_BYTES.items():
         if file_bytes[: len(magic)] == magic:
             return file_type
-    raise UnsupportedFormatError(
-        "File format not supported. Accepted formats: PNG, JPEG, PDF."
-    )
+    raise UnsupportedFormatError("File format not supported. Accepted formats: PNG, JPEG, PDF.")
 
 
 def _validate_size(file_bytes: bytes) -> None:
-    """Raises InvalidInputError if the file exceeds MAX_FILE_SIZE_MB."""
+    """Gera um InvalidInputError se o arquivo exceder MAX_FILE_SIZE_MB."""
     limit = settings.MAX_FILE_SIZE_MB * 1024 * 1024
     if len(file_bytes) > limit:
-        raise InvalidInputError(
-            f"File size exceeds the {settings.MAX_FILE_SIZE_MB} MB limit."
-        )
+        raise InvalidInputError(f"O tamanho do arquivo excede o limite de {settings.MAX_FILE_SIZE_MB} MB.")
 
 
 def _pdf_to_image(file_bytes: bytes) -> bytes:
     """
-    Renders the first page of a PDF as a PNG image.
-    Logs a warning if the PDF has more than one page.
-    Raises InvalidInputError if the PDF cannot be read.
+    Renderiza a primeira página de um PDF como uma imagem PNG.
+    Registra um aviso se o PDF tiver mais de uma página.
+    Gera uma exceção InvalidInputError se o PDF não puder ser lido.
     """
     try:
         with fitz.open(stream=file_bytes, filetype="pdf") as doc:
@@ -65,7 +63,7 @@ def _pdf_to_image(file_bytes: bytes) -> bytes:
             page = doc.load_page(0)
             matrix = fitz.Matrix(2, 2)
             pixmap = page.get_pixmap(matrix=matrix)
-            return pixmap.tobytes("png")
+            return cast(bytes, pixmap.tobytes("png"))
     except Exception as e:
         logger.error(
             "Failed to process PDF file",
@@ -73,41 +71,45 @@ def _pdf_to_image(file_bytes: bytes) -> bytes:
         )
         raise InvalidInputError("Unable to read the PDF file. It may be corrupted.") from e
 
+
 def _normalize_image(image_bytes: bytes) -> bytes:
     """
-    Opens an image with Pillow, converts to RGB, and returns PNG bytes.
-    Raises InvalidInputError if the image cannot be decoded.
+    Abre uma imagem com o Pillow, converte-a para RGB e retorna os bytes do PNG.
+    Gera uma exceção InvalidInputError se a imagem não puder ser decodificada.
     """
     try:
-        img = Image.open(BytesIO(image_bytes))
+        img: Image.Image = Image.open(BytesIO(image_bytes))
         img = img.convert("RGB")
         buffer = BytesIO()
         img.save(buffer, format="PNG")
         return buffer.getvalue()
     except Exception as e:
         logger.error(
-            "Failed to process image file",
+            "Falha ao processar o arquivo de imagem",
             extra={"event": "image_processing_error", "details": {"error": str(e)}},
         )
-        raise InvalidInputError(f"Could not decode image file: {e}") from e
+        raise InvalidInputError(f"Não foi possível decodificar o arquivo de imagem: {e}") from e
 
 
-def preprocess(file_bytes: bytes, filename: str) -> tuple[bytes, str]:
+def preprocess(file_bytes: bytes) -> tuple[bytes, str]:
     """
-    Full preprocessing pipeline for an uploaded file.
- 
-    Steps:
-      1. Validate file size against MAX_FILE_SIZE_MB.
-      2. Detect real file type via magic bytes.
-      3. If PDF: convert first page to image.
-      4. Normalize image to RGB PNG.
- 
-    Returns:
-      (normalized_image_bytes, input_type) where input_type is "image" or "pdf".
- 
-    Raises:
-      InvalidInputError: file too large or unreadable.
-      UnsupportedFormatError: file type not supported.
+    Fluxo completo de pré-processamento para um arquivo enviado.
+
+    Etapas:
+      1. Validar o tamanho do arquivo em relação a MAX_FILE_SIZE_MB.
+      2. Detectar o tipo real do arquivo por meio de bytes mágicos.
+      3. Se for PDF: converter a primeira página em imagem.
+      4. Normalizar a imagem para PNG RGB.
+
+    Retorna:
+      (normalized_image_bytes, input_type), onde input_type é "image" ou "pdf".
+
+    Gera:
+      InvalidInputError: arquivo muito grande ou ilegível.
+      UnsupportedFormatError: tipo de arquivo não suportado.
+
+
+
     """
     _validate_size(file_bytes)
     file_type = _detect_file_type(file_bytes)
@@ -116,7 +118,6 @@ def preprocess(file_bytes: bytes, filename: str) -> tuple[bytes, str]:
         processed_bytes = _pdf_to_image(file_bytes)
         normalized = _normalize_image(processed_bytes)
         return normalized, "pdf"
-    
+
     normalized = _normalize_image(file_bytes)
     return normalized, "image"
-

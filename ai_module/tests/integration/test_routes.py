@@ -1,13 +1,13 @@
 """Integration tests for API routes — Phase 2, tasks 2.4.2–2.4.6."""
+
 from __future__ import annotations
 
 from types import SimpleNamespace
+from unittest.mock import AsyncMock
 
 import pytest
-
 from fastapi import status
 from fastapi.testclient import TestClient
-from unittest.mock import AsyncMock
 
 from ai_module.adapters.factory import get_llm_adapter
 from ai_module.core.exceptions import AIFailureError
@@ -49,11 +49,13 @@ def test_analyze_openapi_does_not_expose_llm_provider_as_input(client: TestClien
 
     schema = response.json()
     operation = schema["paths"]["/analyze"]["post"]
-    request_body_schema_ref = operation["requestBody"]["content"]["multipart/form-data"]["schema"]["$ref"]
+    schema_content = operation["requestBody"]["content"]["multipart/form-data"]["schema"]
+    request_body_schema_ref = schema_content["$ref"]
     request_body_schema_name = request_body_schema_ref.split("/")[-1]
     request_body_schema = schema["components"]["schemas"][request_body_schema_name]
 
     assert "llm_provider" not in request_body_schema.get("properties", {})
+    assert "context_text" in request_body_schema.get("properties", {})
 
 
 def test_analyze_png_returns_success_response(
@@ -165,7 +167,9 @@ def test_analyze_returns_ai_failure_error(
     png_bytes: bytes,
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    failing_adapter = SimpleNamespace(analyze=AsyncMock(side_effect=AIFailureError("Falha após todas as tentativas")))
+    failing_adapter = SimpleNamespace(
+        analyze=AsyncMock(side_effect=AIFailureError("Falha após todas as tentativas"))
+    )
     monkeypatch.setitem(app.dependency_overrides, get_llm_adapter, lambda: failing_adapter)
 
     response = client.post(
@@ -178,3 +182,20 @@ def test_analyze_returns_ai_failure_error(
     body = response.json()
     assert body["analysis_id"] == "analysis-failure"
     assert body["error_code"] == "AI_FAILURE"
+
+
+def test_analyze_context_text_over_1000_returns_422(
+    client: TestClient,
+    png_bytes: bytes,
+    mock_adapter: SimpleNamespace,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setitem(app.dependency_overrides, get_llm_adapter, lambda: mock_adapter)
+
+    response = client.post(
+        "/analyze",
+        data={"analysis_id": "analysis-context-limit", "context_text": "x" * 1001},
+        files={"file": ("img.png", png_bytes, "image/png")},
+    )
+
+    assert response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY

@@ -1,4 +1,5 @@
 """Unit tests for prompt_builder module — Phase 3, tasks 3.3.13–3.3.15."""
+
 from __future__ import annotations
 
 import base64
@@ -57,6 +58,21 @@ def test_build_user_prompt_returns_valid_base64(png_bytes: bytes) -> None:
 
     decoded = base64.b64decode(image_base64)
     assert decoded == png_bytes
+
+
+def test_build_user_prompt_includes_context_isolation_block(png_bytes: bytes) -> None:
+    user_prompt, _ = build_user_prompt(png_bytes, context_text="contexto auxiliar")
+
+    assert "[CONTEXT_TEXT_ISOLATED_BEGIN]" in user_prompt
+    assert "[CONTEXT_TEXT_ISOLATED_END]" in user_prompt
+    assert "contexto auxiliar" in user_prompt
+
+
+def test_build_user_prompt_keeps_isolation_block_when_context_is_empty(png_bytes: bytes) -> None:
+    user_prompt, _ = build_user_prompt(png_bytes)
+
+    assert "[CONTEXT_TEXT_ISOLATED_BEGIN]" in user_prompt
+    assert "[CONTEXT_TEXT_ISOLATED_END]" in user_prompt
 
 
 def test_build_correction_prompt_includes_error_and_previous_response() -> None:

@@ -6,7 +6,9 @@ ensuring strict validation of the analysis identifier.
 
 from __future__ import annotations
 
-from pydantic import UUID4, BaseModel, ConfigDict, Field
+import uuid
+
+from pydantic import UUID4, BaseModel, ConfigDict, Field, field_validator
 
 
 class AnalyzeRequest(BaseModel):
@@ -21,6 +23,18 @@ class AnalyzeRequest(BaseModel):
 
     model_config = ConfigDict(extra="forbid")
 
-    analysis_id: UUID4 = Field(
-        description="Unique identifier for the analysis request (UUID v4 format)"
-    )
+    analysis_id: str = Field(..., description="UUID da análise")
+    context_text: str | None = Field(default=None, max_length=1000)
+
+    @field_validator("analysis_id")
+    @classmethod
+    def validate_uuid(cls, v: str) -> str:
+        """Valida se o analysis_id é um UUID4 válido."""
+        try:
+            uuid_obj = uuid.UUID(v, version=4)
+            return str(uuid_obj)
+        except ValueError:
+            raise ValueError("analysis_id must be a valid UUID4 string")
+        return v
+    
+    

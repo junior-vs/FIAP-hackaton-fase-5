@@ -51,13 +51,13 @@ class OpenAIAdapter(LLMAdapter):
                 raise LLMCallError("OpenAI retornou uma resposta vazia.")
             if isinstance(content, list):
                 content = "".join(
-                    item.text for item in content if hasattr(item, "text") and item.text
+                    item.text for item in content if hasattr(item, "text") and item.text # pyright: ignore[reportAttributeAccessIssue]
                 )
             if not content:
                 raise LLMCallError("OpenAI retornou uma resposta vazia.")
             return content
 
-        except asyncio.TimeoutError as e:
+        except TimeoutError as e:
             raise LLMTimeoutError(
                 f"Timeout após {settings.LLM_TIMEOUT_SECONDS}s chamando a OpenAI."
             ) from e

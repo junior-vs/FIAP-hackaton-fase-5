@@ -30,7 +30,9 @@ def png_bytes() -> bytes:
 
 @pytest.fixture
 def real_diagram_png_bytes() -> bytes:
-    image_path = Path(__file__).resolve().parents[2] / "docs" / "tests" / "diagrama_caso_usuario.png"
+    image_path = (
+        Path(__file__).resolve().parents[2] / "docs" / "tests" / "diagrama_caso_usuario.png"
+    )
     return image_path.read_bytes()
 
 
