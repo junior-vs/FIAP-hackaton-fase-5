@@ -831,31 +831,31 @@ ai_module/
 
 ### Functional
 
-- [ ] AC-006: Valid queue message → pipeline execution → result published
-- [ ] AC-007: Malformed queue JSON → rejected without pipeline call
+- [X] AC-006: Valid queue message → pipeline execution → result published
+- [X] AC-007: Malformed queue JSON → rejected without pipeline call
 
 ### Technical
 
-- [ ] PAT-004: Shared pipeline reused (no duplication)
-- [ ] ERR-004: Malformed messages rejected to DLQ
-- [ ] SEC-002: Request boundary validation for all inputs
-- [ ] SEC-003: No file bytes, API keys, or context_text in logs
+- [X] PAT-004: Shared pipeline reused (no duplication)
+- [X] ERR-004: Malformed messages rejected to DLQ
+- [X] SEC-002: Request boundary validation for all inputs
+- [X] SEC-003: No file bytes, API keys, or context_text in logs
 
 ### Observability
 
-- [ ] OBS-001: Structured logs with semantic events
-- [ ] OBS-004: Queue outcomes observable in logs and metrics
-- [ ] Health endpoint reflects queue connectivity
-- [ ] Metrics endpoint includes queue metrics
+- [X] OBS-001: Structured logs with semantic events
+- [X] OBS-004: Queue outcomes observable in logs and metrics
+- [X] Health endpoint reflects queue connectivity
+- [X] Metrics endpoint includes queue metrics
 
 ### Quality
 
-- [ ] All unit tests pass
-- [ ] All integration tests pass
-- [ ] All contract tests pass
-- [ ] Coverage >= 80%
-- [ ] No ruff errors
-- [ ] No mypy errors
+- [X] All unit tests pass
+- [X] All integration tests pass
+- [X] All contract tests pass
+- [X] Coverage >= 80%
+- [X] No ruff errors
+- [X] No mypy errors
 
 ## Dependencies & Risks
 

@@ -83,57 +83,7 @@ Will re-evaluate after Phase 1 design artifacts are complete.
 ---
 
 ## Project Structure
-
-### Documentation (this feature)
-
-```text
-specs/
-├── FUN-010-tasks.md         # This file
-├── FUN-010-research.md      # Phase 0 output (library selection, patterns)
-├── FUN-010-data-model.md    # Phase 1 output (message schemas)
-├── FUN-010-quickstart.md    # Phase 1 output (usage guide)
-└── FUN-010-contracts/        # Phase 1 output (message contracts)
-    ├── success-result.json
-    └── error-result.json
-```
-
-### Source Code
-
-```text
-ai_module/
-├── src/ai_module/
-│   ├── worker/                     # Worker-specific components
-│   │   ├── publisher.py            # NEW: RabbitMQ result publisher
-│   │   ├── consumer.py             # EXISTING (FUN-009): Message consumer
-│   │   └── exceptions.py           # NEW: Worker-specific exceptions
-│   │
-│   ├── adapters/                   # External service adapters
-│   │   └── rabbitmq_adapter.py     # SHARED: Connection management (FUN-009+FUN-010)
-│   │
-│   ├── core/
-│   │   ├── pipeline.py             # UNCHANGED: Pure business logic
-│   │   ├── settings.py             # EXISTING: RabbitMQ config already present
-│   │   ├── metrics.py              # MODIFIED: Add publish metrics
-│   │   └── logger.py               # EXISTING: Reuse structured logging
-│   │
-│   ├── models/
-│   │   └── report.py               # EXISTING: AnalyzeResponse, ErrorResponse
-│   │
-│   └── main.py                     # MODIFIED: Initialize publisher via adapter
-│
-├── tests/
-│   ├── unit/
-│   │   ├── test_publisher.py       # NEW: Publisher unit tests
-│   │   └── test_rabbitmq_adapter.py # SHARED: Adapter tests (FUN-009+FUN-010)
-│   │
-│   ├── integration/
-│   │   └── test_rabbitmq_publish.py # NEW: End-to-end publish tests
-│   │
-│   └── contract/
-│       └── test_result_contracts.py # NEW: Schema validation tests
-│
-└── pyproject.toml                  # MODIFIED: Add aio-pika dependency
-```
+  
 
 ---
 
