@@ -55,10 +55,10 @@ class Settings(BaseSettings):
     CONFLICT_POLICY: str = "DIAGRAM_FIRST"
     INCLUDE_CONFLICT_METADATA: bool = True
 
-    RABBITMQ_URL: str = "AMQP://GUEST:GUEST@LOCALHOST:5672/"
-    RABBITMQ_INPUT_QUEUE: str = "ANALYSIS.REQUESTS"
-    RABBITMQ_OUTPUT_QUEUE: str = "ANALYSIS.RESULTS"
-    RABBITMQ_EXCHANGE: str = "ANALYSIS"
+    RABBITMQ_URL: str = "amqp://guest:guest@localhost:5672/"
+    RABBITMQ_INPUT_QUEUE: str = "analysis.requests"
+    RABBITMQ_OUTPUT_QUEUE: str = "analysis.results"
+    RABBITMQ_EXCHANGE: str = "analysis"
     RABBITMQ_PREFETCH_COUNT: int = 1
     RABBITMQ_RECONNECT_MAX_DELAY_SECONDS: int = 60
 
