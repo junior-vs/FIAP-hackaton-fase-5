@@ -16,6 +16,9 @@ class Metrics:
     messages_consumed: int = 0
     validation_errors: int = 0
     pipeline_errors: int = 0
+    results_published: int = 0
+    errors_published: int = 0
+    publish_failures: int = 0
 
 
 metrics = Metrics()

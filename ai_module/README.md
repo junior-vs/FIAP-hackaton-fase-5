@@ -26,6 +26,7 @@ Este modulo faz parte do projeto FIAP Hackathon Fase 5 e cuida apenas do pipelin
 - [Tutorial - rodando com docker](#tutorial---rodando-com-docker)
 - [Uso rapido da API](#uso-rapido-da-api)
 - [Observabilidade e seguranca](#observabilidade-e-seguranca)
+- [Worker RabbitMQ](#worker-rabbitmq)
 - [Desenvolvimento](#desenvolvimento)
 
 ## Requisitos
@@ -57,6 +58,10 @@ Crie um arquivo `.env` dentro da pasta `ai_module/`.
 | `APP_HOST`            | `0.0.0.0`        | Host de bind da aplicacao                |
 | `APP_PORT`            | `8000`           | Porta HTTP                               |
 | `APP_ENV`             | `dev`            | Ambiente de execucao                     |
+| `RABBITMQ_URL`        | *(vazio)*        | URL de conexao ao broker RabbitMQ        |
+| `RABBITMQ_INPUT_QUEUE` | `analysis.requests` | Fila de entrada de requisicoes          |
+| `RABBITMQ_OUTPUT_QUEUE` | `analysis.results` | Fila de saida de resultados             |
+| `RABBITMQ_WORKER_ENABLED` | `false`      | Habilita o consumer RabbitMQ no startup  |
 
 Exemplo de `.env`:
 
@@ -196,6 +201,88 @@ Headers de seguranca adicionados nas respostas HTTP:
 - `X-Content-Type-Options: nosniff`
 - `X-Frame-Options: DENY`
 - `Referrer-Policy: strict-origin-when-cross-origin`
+
+## Worker RabbitMQ
+
+O servico suporta consumo assincrono de mensagens via RabbitMQ, habilitado pela variavel `RABBITMQ_WORKER_ENABLED=true`.
+
+### Como funciona
+
+1. O `main.py` inicia o `WorkerLifecycle` junto com o FastAPI (evento `startup`).
+2. O `Consumer` se conecta ao broker, declara a fila `analysis.requests` e registra o callback.
+3. Para cada mensagem recebida:
+   - Decodifica JSON → valida schema (`QueueAnalysisRequest`)
+   - Decodifica base64 dos bytes do arquivo
+   - Executa o pipeline de IA (`run_pipeline`)
+   - Publica o resultado em `analysis.results` via `Publisher`
+4. Mensagens malformadas (JSON invalido ou schema invalido) sao descartadas sem requeue (NACK).
+5. Erros de pipeline publicam uma resposta de erro na fila de saida e fazem ACK.
+
+### Formatos de mensagem
+
+#### Requisicao (`analysis.requests`)
+
+```json
+{
+  "analysis_id": "550e8400-e29b-41d4-a716-446655440000",
+  "file_bytes_b64": "<base64 do arquivo>",
+  "file_name": "diagram.png",
+  "context_text": "Opcional: texto auxiliar"
+}
+```
+
+#### Resposta de sucesso (`analysis.results`)
+
+```json
+{
+  "analysis_id": "550e8400-e29b-41d4-a716-446655440000",
+  "status": "success",
+  "report": { "..." },
+  "metadata": { "..." }
+}
+```
+
+#### Resposta de erro (`analysis.results`)
+
+```json
+{
+  "analysis_id": "550e8400-e29b-41d4-a716-446655440000",
+  "status": "error",
+  "error_code": "PIPELINE_ERROR",
+  "message": "Descricao do erro"
+}
+```
+
+Codigos de erro possiveis:
+
+| `error_code`         | Causa                                                  |
+|----------------------|--------------------------------------------------------|
+| `INVALID_INPUT`      | Input invalido rejeitado pelo pipeline                 |
+| `UNSUPPORTED_FORMAT` | Formato de arquivo nao suportado                       |
+| `TIMEOUT`            | Timeout no LLM ou no pipeline de IA                    |
+| `AI_FAILURE`         | Falha na chamada ao servico de IA                      |
+| `PIPELINE_ERROR`     | Erro nao classificado durante o pipeline               |
+
+### Habilitando o worker
+
+Adicione ao `.env`:
+
+```env
+RABBITMQ_WORKER_ENABLED=true
+RABBITMQ_URL=amqp://guest:guest@localhost:5672/
+RABBITMQ_INPUT_QUEUE=analysis.requests
+RABBITMQ_OUTPUT_QUEUE=analysis.results
+```
+
+### Resolucao de problemas
+
+| Sintoma                              | Causa provavel                        | Solucao                                      |
+|--------------------------------------|---------------------------------------|----------------------------------------------|
+| Worker nao inicia                    | `RABBITMQ_WORKER_ENABLED=false`       | Defina a variavel como `true`                |
+| Conexao recusada                     | RabbitMQ nao esta rodando             | Suba o broker com `docker compose up rabbit` |
+| Mensagens na DLQ                     | JSON invalido ou schema errado        | Valide o payload do publicador               |
+| Respostas de erro com `TIMEOUT`      | LLM demorando mais que o timeout      | Aumente `LLM_TIMEOUT_SECONDS`                |
+| Worker nao publica resultados        | Fila de saida nao declarada           | Verifique `RABBITMQ_OUTPUT_QUEUE`            |
 
 ## Desenvolvimento
 

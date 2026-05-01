@@ -11,7 +11,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from ai_module.core.metrics import Metrics, metrics
+from ai_module.core.metrics import metrics
 from ai_module.models.queue import QueueErrorResponse
 from ai_module.models.report import (
     AnalyzeResponse,

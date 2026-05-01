@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import asyncio
 from collections.abc import AsyncIterator, Awaitable, Callable
 from contextlib import asynccontextmanager
 
@@ -9,6 +10,7 @@ import uvicorn
 from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse, Response
 
+from ai_module.adapters.rabbitmq_adapter import RabbitMQAdapter
 from ai_module.api.routes import router
 from ai_module.core.exceptions import (
     AIFailureError,
@@ -19,8 +21,9 @@ from ai_module.core.exceptions import (
 from ai_module.core.logger import get_logger
 from ai_module.core.metrics import metrics
 from ai_module.core.settings import settings
-from ai_module.core.state import set_service_health
+from ai_module.core.state import set_queue_health, set_service_health
 from ai_module.models.report import ErrorResponse
+from ai_module.worker import MessageConsumer, RabbitMQResultPublisher
 
 # Initialize logger
 logger = get_logger("ai_module.main", level=settings.LOG_LEVEL)
@@ -65,6 +68,32 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
 
     set_service_health(healthy)
 
+    # RabbitMQ worker setup — only when explicitly enabled
+    adapter: RabbitMQAdapter | None = None
+    consumer: MessageConsumer | None = None
+    worker_task: asyncio.Task[None] | None = None
+
+    if settings.RABBITMQ_WORKER_ENABLED:
+        adapter = RabbitMQAdapter()
+        try:
+            await adapter.connect()
+            set_queue_health(True)
+
+            publisher = RabbitMQResultPublisher(adapter)
+            consumer = MessageConsumer(adapter=adapter, publisher=publisher)
+            worker_task = asyncio.create_task(consumer.start())
+
+            logger.info(
+                "RabbitMQ worker started",
+                extra={"event": "worker_started"},
+            )
+        except Exception as exc:
+            logger.warning(
+                "RabbitMQ unavailable at startup — queue processing disabled",
+                extra={"event": "worker_start_failed", "error": str(exc)},
+            )
+            set_queue_health(False)
+
     if healthy:
         logger.info(
             "Service started",
@@ -78,6 +107,20 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
         )
 
     yield
+
+    # Graceful shutdown — only runs if worker was started
+    if consumer is not None:
+        await consumer.stop()
+    if worker_task is not None and not worker_task.done():
+        worker_task.cancel()
+        try:
+            await worker_task
+        except asyncio.CancelledError:
+            pass
+    if adapter is not None:
+        await adapter.disconnect()
+    set_queue_health(False)
+
     logger.info("Application shutdown")
 
 

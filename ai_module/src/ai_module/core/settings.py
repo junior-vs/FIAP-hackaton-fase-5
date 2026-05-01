@@ -61,6 +61,7 @@ class Settings(BaseSettings):
     RABBITMQ_EXCHANGE: str = "analysis"
     RABBITMQ_PREFETCH_COUNT: int = 1
     RABBITMQ_RECONNECT_MAX_DELAY_SECONDS: int = 60
+    RABBITMQ_WORKER_ENABLED: bool = False
 
     @field_validator("LLM_PROVIDER")
     @classmethod

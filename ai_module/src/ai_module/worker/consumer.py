@@ -25,6 +25,14 @@ from pydantic import ValidationError
 
 from ai_module.adapters.factory import get_llm_adapter
 from ai_module.adapters.rabbitmq_adapter import RabbitMQAdapter
+from ai_module.core.exceptions import (
+    AIFailureError,
+    AITimeoutError,
+    InvalidInputError,
+    LLMCallError,
+    LLMTimeoutError,
+    UnsupportedFormatError,
+)
 from ai_module.core.logger import get_logger
 from ai_module.core.metrics import metrics
 from ai_module.core.pipeline import run_pipeline
@@ -180,6 +188,10 @@ class MessageConsumer:
         # ------------------------------------------------------------------ #
         # Step 4 — run analysis pipeline                                       #
         # ------------------------------------------------------------------ #
+        logger.info(
+            "Pipeline starting",
+            extra={"event": "pipeline_start", "analysis_id": analysis_id},
+        )
         try:
             llm_adapter = get_llm_adapter()
             result = await run_pipeline(
@@ -189,6 +201,46 @@ class MessageConsumer:
                 adapter=llm_adapter,
                 context_text=request.context_text,
             )
+        except (InvalidInputError, UnsupportedFormatError) as exc:
+            _error_code = (
+                "INVALID_INPUT" if isinstance(exc, InvalidInputError) else "UNSUPPORTED_FORMAT"
+            )
+            logger.warning(
+                "Pipeline rejected input",
+                extra={"event": "pipeline_error", "analysis_id": analysis_id, "error": str(exc)},
+            )
+            metrics.pipeline_errors += 1
+            await self._publisher.publish_error(
+                QueueErrorResponse(
+                    analysis_id=analysis_id, error_code=_error_code, message=str(exc)
+                )
+            )
+            await message.ack()
+            return
+        except (AITimeoutError, LLMTimeoutError) as exc:
+            logger.error(
+                "Pipeline timed out",
+                extra={"event": "pipeline_error", "analysis_id": analysis_id, "error": str(exc)},
+            )
+            metrics.pipeline_errors += 1
+            await self._publisher.publish_error(
+                QueueErrorResponse(analysis_id=analysis_id, error_code="TIMEOUT", message=str(exc))
+            )
+            await message.ack()
+            return
+        except (AIFailureError, LLMCallError) as exc:
+            logger.error(
+                "AI service failure",
+                extra={"event": "pipeline_error", "analysis_id": analysis_id, "error": str(exc)},
+            )
+            metrics.pipeline_errors += 1
+            await self._publisher.publish_error(
+                QueueErrorResponse(
+                    analysis_id=analysis_id, error_code="AI_FAILURE", message=str(exc)
+                )
+            )
+            await message.ack()
+            return
         except Exception as exc:
             logger.error(
                 "Pipeline execution failed",

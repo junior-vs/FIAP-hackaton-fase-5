@@ -18,7 +18,6 @@ from ai_module.models.queue import (
 )
 from ai_module.models.report import Component, Report, ReportMetadata
 
-
 # ---------------------------------------------------------------------------
 # Valid Request Tests
 # ---------------------------------------------------------------------------

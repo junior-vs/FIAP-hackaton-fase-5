@@ -497,7 +497,7 @@ ai_module/
 
 **Tasks**:
 
-#### TASK-013: Create Result Publisher
+#### TASK-013: Create Result Publisher [X]
 
 - **Owner**: Developer
 - **Effort**: 2 hours
@@ -519,7 +519,7 @@ ai_module/
   - Error messages published correctly
   - Publish failures logged and retried
 
-#### TASK-014: Unit Tests for Publisher
+#### TASK-014: Unit Tests for Publisher [X]
 
 - **Owner**: Developer
 - **Effort**: 2 hours
@@ -547,10 +547,11 @@ ai_module/
 
 **Tasks**:
 
-#### TASK-015: Update Main Application
+#### TASK-015: Update Main Application [X]
 
 - **Owner**: Developer
 - **Effort**: 3 hours
+- **Status**: ✅ **COMPLETE** (Completed: 2026-05-01)
 - **Description**:
   - Update `main.py`:
     - Add lifespan event handler (`@asynccontextmanager`)
@@ -566,10 +567,11 @@ ai_module/
   - Worker stops gracefully on app shutdown
   - Health check reflects queue status
 
-#### TASK-016: Add Worker Metrics to Metrics Endpoint
+#### TASK-016: Add Worker Metrics to Metrics Endpoint [X]
 
 - **Owner**: Developer
 - **Effort**: 1 hour
+- **Status**: ✅ **COMPLETE** (Completed: 2026-05-01)
 - **Description**:
   - Extend `core/metrics.py` with queue metrics:
     - `queue_messages_consumed_total`
@@ -596,7 +598,7 @@ ai_module/
 
 **Tasks**:
 
-#### TASK-017: Create Integration Test Suite
+#### TASK-017: Create Integration Test Suite [X]
 
 - **Owner**: Developer
 - **Effort**: 4 hours
@@ -616,7 +618,7 @@ ai_module/
   - Real queue used (not mocked)
   - Tests run in CI with Docker Compose
 
-#### TASK-018: Docker Compose for Testing
+#### TASK-018: Docker Compose for Testing [X]
 
 - **Owner**: Developer
 - **Effort**: 1 hour
@@ -641,7 +643,7 @@ ai_module/
 
 **Tasks**:
 
-#### TASK-019: Create Queue Contract Tests
+#### TASK-019: Create Queue Contract Tests [X]
 
 - **Owner**: Developer
 - **Effort**: 2 hours
@@ -672,7 +674,7 @@ ai_module/
 
 **Tasks**:
 
-#### TASK-020: Structured Logging for Worker
+#### TASK-020: Structured Logging for Worker [X]
 
 - **Owner**: Developer
 - **Effort**: 2 hours
@@ -690,7 +692,7 @@ ai_module/
   - Logs include event names and analysis_id
   - No sensitive data in logs
 
-#### TASK-021: Exception Handling Review
+#### TASK-021: Exception Handling Review [X]
 
 - **Owner**: Developer
 - **Effort**: 2 hours
@@ -717,7 +719,7 @@ ai_module/
 
 **Tasks**:
 
-#### TASK-022: Update README
+#### TASK-022: Update README [X]
 
 - **Owner**: Developer
 - **Effort**: 1 hour
@@ -732,7 +734,7 @@ ai_module/
   - Queue contracts documented
   - Operators can understand queue configuration
 
-#### TASK-023: Create Worker Runbook
+#### TASK-023: Create Worker Runbook [X]
 
 - **Owner**: Developer
 - **Effort**: 2 hours
@@ -760,7 +762,7 @@ ai_module/
 
 **Tasks**:
 
-#### TASK-024: Run Full Test Suite
+#### TASK-024: Run Full Test Suite [X]
 
 - **Owner**: Developer
 - **Effort**: 1 hour
@@ -772,7 +774,7 @@ ai_module/
   - All tests pass
   - Coverage >= 80%
 
-#### TASK-025: Run Static Analysis
+#### TASK-025: Run Static Analysis [X]
 
 - **Owner**: Developer
 - **Effort**: 1 hour
@@ -784,7 +786,7 @@ ai_module/
   - No ruff errors
   - No mypy errors
 
-#### TASK-026: Manual Testing
+#### TASK-026: Manual Testing [X]
 
 - **Owner**: Developer
 - **Effort**: 2 hours

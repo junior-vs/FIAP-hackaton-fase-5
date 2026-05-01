@@ -4,8 +4,6 @@ from __future__ import annotations
 
 import warnings
 
-import pytest
-
 from ai_module.core.settings import Settings
 
 

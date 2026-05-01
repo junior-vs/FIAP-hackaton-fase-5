@@ -13,7 +13,6 @@ def test_aiopika_import() -> None:
 @pytest.mark.asyncio
 async def test_aiopika_types() -> None:
     """Verify aio-pika types work with mypy strict mode."""
-    from aio_pika import connect_robust
     from aio_pika.abc import AbstractRobustConnection
     
     # Type checking - this should pass mypy

@@ -25,10 +25,12 @@ async def health_check() -> dict[str, Any]:
                 "status": "degraded",
                 "version": settings.APP_VERSION,
                 "llm_provider": settings.LLM_PROVIDER,
+                "queue_connected": _state._queue_connected,
             },
         )
     return {
         "status": "healthy",
         "version": settings.APP_VERSION,
         "llm_provider": settings.LLM_PROVIDER,
+        "queue_connected": _state._queue_connected,
     }

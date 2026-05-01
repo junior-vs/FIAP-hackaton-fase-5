@@ -5,13 +5,11 @@ All aio_pika calls are mocked — no RabbitMQ server required.
 
 from __future__ import annotations
 
-import asyncio
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
 from ai_module.adapters.rabbitmq_adapter import RabbitMQAdapter, _safe_url
-
 
 # ---------------------------------------------------------------------------
 # Helpers

@@ -13,11 +13,9 @@ from __future__ import annotations
 import base64
 from typing import Annotated, Literal
 
-from pydantic import BaseModel, ConfigDict, Field, field_validator
-from pydantic import StringConstraints
+from pydantic import BaseModel, ConfigDict, Field, StringConstraints, field_validator
 
 from ai_module.models.report import Report, ReportMetadata
-
 
 # ---------------------------------------------------------------------------
 # Type aliases
